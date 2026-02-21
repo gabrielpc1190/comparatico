@@ -62,7 +62,7 @@ export default function Home() {
                     <input
                         type="text"
                         className="input-field"
-                        placeholder="Ej: Arroz Tio Pelon 99..."
+                        placeholder="Ej: Arroz, Leche, Atún..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         style={{ flex: 1 }}
