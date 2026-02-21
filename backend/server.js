@@ -47,10 +47,23 @@ app.post('/api/upload-xml', upload.single('factura'), async (req, res) => {
 
         let itemsAdded = 0;
 
-        // 2. Insert Products and Prices
+        // 2. Prepare items and avoid duplicates in the same XML
+        const uniqueItemsMap = new Map();
         for (const item of parsedData.items) {
             if (!item.nombre || !item.precio) continue;
+            const key = item.codigoBarras ? `cb:${item.codigoBarras}` : `nm:${item.nombre}`;
+            if (!uniqueItemsMap.has(key)) {
+                uniqueItemsMap.set(key, item);
+            }
+        }
 
+        const uniqueItems = Array.from(uniqueItemsMap.values());
+        const priceEntries = [];
+
+        // 3. Handle Products (Find or Create)
+        // We still do this in a loop for safety with UNIQUE constraints, 
+        // but we only do it for UNIQUE items in the XML.
+        for (const item of uniqueItems) {
             let productoId;
             const codBarras = item.codigoBarras ? item.codigoBarras : null;
 
@@ -71,16 +84,23 @@ app.post('/api/upload-xml', upload.single('factura'), async (req, res) => {
                 productoId = newProdResult.insertId;
             }
 
-            await connection.execute('INSERT INTO precios (productoId, reciboId, precio) VALUES (?, ?, ?)', [productoId, reciboId, item.precio]);
-            itemsAdded++;
+            // Map this product ID back to all original occurrences in the XML (if any duplicates existed)
+            // Actually uniqueItems handles unique keys, so we just add the price entry
+            priceEntries.push([productoId, reciboId, item.precio]);
+        }
+
+        // 4. Bulk Insert Prices
+        if (priceEntries.length > 0) {
+            const sqlPrices = 'INSERT INTO precios (productoId, reciboId, precio) VALUES ?';
+            await connection.query(sqlPrices, [priceEntries]);
         }
 
         await connection.commit();
-        console.log(`--- Éxito: Se registraron ${itemsAdded} productos de ${parsedData.establecimiento} ---`);
+        console.log(`--- Éxito: Se registraron ${priceEntries.length} productos de ${parsedData.establecimiento} (Bulk Insert) ---`);
 
         res.json({
             success: true,
-            message: `XML procesado con éxito en MariaDB. Se añadieron precios para ${itemsAdded} productos.`,
+            message: `XML procesado con éxito. Se añadieron precios para ${priceEntries.length} productos mediante inserción masiva.`,
             establecimiento: parsedData.establecimiento
         });
     } catch (error) {
