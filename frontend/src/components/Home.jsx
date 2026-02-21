@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, ScanBarcode } from 'lucide-react';
 export default function Home() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [query, setQuery] = useState(searchParams.get('barcode') || '');
     const [results, setResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState('');
+
+    const navigate = useNavigate();
 
     // Auto-search if barcode is in URL
     useEffect(() => {
@@ -54,18 +56,22 @@ export default function Home() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
             <div className="glass-panel" style={{ padding: '1.5rem' }}>
                 <h2 style={{ marginBottom: '1rem', color: '#002b7f' }}>Buscar Producto</h2>
-                <p>Ingresa el nombre o el código de barras para encontrar los mejores precios.</p>
+                <p>Ingresa el nombre o escanea un código de barras para encontrar los mejores precios.</p>
 
-                <form onSubmit={onSubmit} style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                <form onSubmit={onSubmit} style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', width: '100%' }}>
                     <input
                         type="text"
                         className="input-field"
                         placeholder="Ej: Arroz Tio Pelon 99..."
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
+                        style={{ flex: 1 }}
                     />
-                    <button type="submit" className="btn-primary" disabled={isSearching} style={{ backgroundColor: '#ce1126' }}>
-                        {isSearching ? '...' : 'Buscar'}
+                    <button type="submit" className="btn-primary" disabled={isSearching} style={{ backgroundColor: '#ce1126', padding: '0.75rem', minWidth: '48px' }} title="Buscar">
+                        {isSearching ? '...' : <Search size={20} />}
+                    </button>
+                    <button type="button" className="btn-primary" onClick={() => navigate('/scanner')} style={{ backgroundColor: '#002b7f', padding: '0.75rem', minWidth: '48px' }} title="Escanear Código">
+                        <ScanBarcode size={20} />
                     </button>
                 </form>
 
