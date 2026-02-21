@@ -17,8 +17,17 @@ function AppContent() {
 
   return (
     <div className="container">
-      <header className="glass-panel" style={{ padding: '1rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-        <h1 style={{ marginBottom: 0, fontSize: '1.5rem', color: 'var(--accent-primary)' }}>
+      <header className="glass-panel" style={{
+        padding: '0.75rem',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        borderBottom: '4px solid #ce1126' // Red stripe for Costa Rica
+      }}>
+        <img src="/logo.png" alt="Comparatico Logo" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+        <h1 style={{ marginBottom: 0, fontSize: '1.75rem', color: '#002b7f', fontWeight: '800', letterSpacing: '-0.5px' }}> {/* Blue for Costa Rica */}
           Comparatico
         </h1>
       </header>

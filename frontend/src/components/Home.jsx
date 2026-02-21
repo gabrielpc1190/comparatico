@@ -51,90 +51,119 @@ export default function Home() {
     }
 
     return (
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <h2>Buscar Producto</h2>
-            <p>Busca por texto o escanea un código para comparar.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
+            <div className="glass-panel" style={{ padding: '1.5rem' }}>
+                <h2 style={{ marginBottom: '1rem', color: '#002b7f' }}>Buscar Producto</h2>
+                <p>Ingresa el nombre o el código de barras para encontrar los mejores precios.</p>
 
-            <form onSubmit={onSubmit} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                <input
-                    type="text"
-                    className="input-field"
-                    placeholder="Ej: Arroz Tio Pelon..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                />
-                <button type="submit" className="btn-primary" disabled={isSearching}>
-                    {isSearching ? '...' : 'Buscar'}
-                </button>
-            </form>
+                <form onSubmit={onSubmit} style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                    <input
+                        type="text"
+                        className="input-field"
+                        placeholder="Ej: Arroz Tio Pelon 99..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                    />
+                    <button type="submit" className="btn-primary" disabled={isSearching} style={{ backgroundColor: '#ce1126' }}>
+                        {isSearching ? '...' : 'Buscar'}
+                    </button>
+                </form>
 
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+                {error && <p style={{ color: 'var(--error-color)', marginTop: '1rem' }}>{error}</p>}
+            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {results.map((prod) => {
-                    let tiendas = [];
-                    try {
-                        if (typeof prod.tiendas === 'string') {
-                            tiendas = JSON.parse(prod.tiendas) || [];
-                        } else if (Array.isArray(prod.tiendas)) {
-                            tiendas = prod.tiendas;
+            {/* Guía de Inicio - Solo se muestra si no hay búsqueda activa y no hay resultados */}
+            {results.length === 0 && !isSearching && !query && (
+                <div className="glass-panel" style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
+                    <h2 style={{ fontSize: '1.75rem', marginBottom: '1rem', color: '#002b7f' }}>¡Pura Vida! 🇨🇷</h2>
+                    <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: 'var(--text-secondary)' }}>
+                        Bienvenido a <strong>Comparatico</strong>, tu aliado para ahorrar en el súper.
+                    </p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', textAlign: 'left' }}>
+                        <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+                            <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>🔎</span>
+                            <h3 style={{ fontSize: '1.1rem', color: '#002b7f' }}>Busca y Compara</h3>
+                            <p style={{ fontSize: '0.9rem', margin: 0 }}>Escribe el nombre de lo que ocupas y mira dónde está más barato.</p>
+                        </div>
+                        <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+                            <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>📷</span>
+                            <h3 style={{ fontSize: '1.1rem', color: '#002b7f' }}>En los pasillos</h3>
+                            <p style={{ fontSize: '0.9rem', margin: 0 }}>Usa el ícono de código de barras abajo para escanear productos físicos en la pulpería.</p>
+                        </div>
+                        <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+                            <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>📧</span>
+                            <h3 style={{ fontSize: '1.1rem', color: '#002b7f' }}>Comparte facturas</h3>
+                            <p style={{ fontSize: '0.9rem', margin: 0 }}>Envíalas a comparaticocr@gmail.com para actualizar los precios para todos.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Resultados de Búsqueda */}
+            {results.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {results.map((prod) => {
+                        let tiendas = [];
+                        try {
+                            if (typeof prod.tiendas === 'string') {
+                                tiendas = JSON.parse(prod.tiendas) || [];
+                            } else if (Array.isArray(prod.tiendas)) {
+                                tiendas = prod.tiendas;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing tiendas', e);
                         }
-                    } catch (e) {
-                        console.error('Error parsing tiendas', e);
-                    }
 
-                    // Sort by price ascending
-                    tiendas.sort((a, b) => parseFloat(a.precio) - parseFloat(b.precio));
+                        // Sort by price ascending
+                        tiendas.sort((a, b) => parseFloat(a.precio) - parseFloat(b.precio));
 
-                    return (
-                        <div key={prod.id} style={{
-                            padding: '1rem',
-                            backgroundColor: 'var(--bg-secondary)',
-                            borderRadius: '12px',
-                            border: '1px solid var(--border-color)',
-                            boxShadow: 'var(--shadow-sm)'
-                        }}>
-                            <h3 style={{ fontSize: '1.125rem', marginBottom: '0.25rem' }}>{prod.nombre}</h3>
-                            {prod.codigoBarras && <p style={{ fontSize: '0.875rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>EAN: {prod.codigoBarras}</p>}
+                        return (
+                            <div key={prod.id} className="glass-panel" style={{
+                                padding: '1.25rem',
+                            }}>
+                                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: '#002b7f' }}>{prod.nombre}</h3>
+                                {prod.codigoBarras && <p style={{ fontSize: '0.85rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>EAN: {prod.codigoBarras}</p>}
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                {tiendas.length > 0 ? tiendas.map((t, idx) => {
-                                    const isOutdated = t.dias > 30;
-                                    return (
-                                        <div key={idx} style={{
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            padding: '0.75rem',
-                                            backgroundColor: idx === 0 && !isOutdated ? 'rgba(74, 222, 128, 0.1)' : 'var(--bg-primary)',
-                                            border: idx === 0 && !isOutdated ? '1px solid rgba(74, 222, 128, 0.3)' : '1px solid var(--border-color)',
-                                            borderRadius: '8px'
-                                        }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{t.establecimiento}</span>
-                                                <span style={{ fontSize: '0.75rem', color: isOutdated ? 'var(--error-color)' : 'var(--text-secondary)' }}>
-                                                    {isOutdated ? `⚠️ Precio desactualizado (Hace ${t.dias} días)` : (t.dias === 0 ? 'Hoy' : `Hace ${t.dias} días`)}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    {tiendas.length > 0 ? tiendas.map((t, idx) => {
+                                        const isOutdated = t.dias > 30;
+                                        return (
+                                            <div key={idx} style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                padding: '0.85rem',
+                                                backgroundColor: idx === 0 && !isOutdated ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255,255,255,0.6)',
+                                                border: idx === 0 && !isOutdated ? '1px solid rgba(74, 222, 128, 0.4)' : '1px solid rgba(0,0,0,0.05)',
+                                                borderRadius: '8px'
+                                            }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontWeight: '600', fontSize: '0.95rem', color: '#1e293b' }}>{t.establecimiento}</span>
+                                                    <span style={{ fontSize: '0.75rem', color: isOutdated ? '#ef4444' : '#64748b' }}>
+                                                        {isOutdated ? `⚠️ Desactualizado (Hace ${t.dias} días)` : (t.dias === 0 ? 'Actualizado Hoy' : `Hace ${t.dias} días`)}
+                                                    </span>
+                                                </div>
+                                                <span style={{
+                                                    fontWeight: '700',
+                                                    fontSize: '1.15rem',
+                                                    color: isOutdated ? '#94a3b8' : (idx === 0 ? '#16a34a' : '#0f172a'),
+                                                    textDecoration: isOutdated ? 'line-through' : 'none',
+                                                    opacity: isOutdated ? 0.7 : 1
+                                                }}>
+                                                    ₡{parseFloat(t.precio).toLocaleString('es-CR')}
                                                 </span>
                                             </div>
-                                            <span style={{
-                                                fontWeight: 'bold',
-                                                fontSize: '1.1rem',
-                                                color: isOutdated ? 'var(--text-secondary)' : (idx === 0 ? 'var(--success-color)' : 'var(--text-primary)'),
-                                                textDecoration: isOutdated ? 'line-through' : 'none',
-                                                opacity: isOutdated ? 0.6 : 1
-                                            }}>
-                                                ₡{parseFloat(t.precio).toLocaleString('es-CR')}
-                                            </span>
-                                        </div>
-                                    );
-                                }) : (
-                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>No hay datos detallados de tiendas.</p>
-                                )}
+                                        );
+                                    }) : (
+                                        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>No hay datos detallados de tiendas.</p>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }
