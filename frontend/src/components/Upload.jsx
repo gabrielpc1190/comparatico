@@ -87,6 +87,28 @@ export default function Upload() {
             >
                 Procesar Factura
             </button>
+
+            <div style={{
+                marginTop: '2rem',
+                padding: '1rem',
+                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.2)',
+                borderRadius: '8px',
+                textAlign: 'left',
+                fontSize: '0.9rem'
+            }}>
+                <h4 style={{ color: 'var(--accent-primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <AlertCircle size={18} /> Automatización por Email
+                </h4>
+                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+                    También puedes enviar tus facturas XML directamente a:
+                    <br />
+                    <strong style={{ color: 'var(--text-primary)' }}>comparaticocr@gmail.com</strong>
+                </p>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+                    * Los correos se procesan automáticamente cada 10 minutos.
+                </p>
+            </div>
         </div>
     );
 }
