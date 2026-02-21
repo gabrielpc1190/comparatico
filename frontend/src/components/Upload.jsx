@@ -48,66 +48,71 @@ export default function Upload() {
     };
 
     return (
-        <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
-            <h2 style={{ marginBottom: '1rem' }}>Sube tu Factura</h2>
-            <p>Ayuda a alimentar la base de precios subiendo el XML de una Factura Electrónica de Costa Rica.</p>
-
-            <div style={{
-                marginTop: '2rem',
-                padding: '2rem 1rem',
-                border: '2px dashed var(--border-color)',
-                borderRadius: '12px',
-                backgroundColor: 'var(--bg-secondary)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '1rem'
-            }}>
-                <UploadCloud size={48} color="var(--accent-primary)" />
-                <input
-                    type="file"
-                    accept=".xml"
-                    onChange={handleFileChange}
-                    style={{ width: '100%', maxWidth: '250px' }}
-                />
-
-                {file && <p style={{ margin: 0, fontWeight: '500' }}>Archivo: {file.name}</p>}
-
-                {status === 'loading' && <p>Procesando...</p>}
-                {status === 'success' && <p style={{ color: 'green', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle size={20} /> {message}</p>}
-                {status === 'error' && <p style={{ color: 'red', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={20} /> {message}</p>}
-
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
+            {/* Sección Principal Primaria - Envío por Correo */}
+            <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', backgroundColor: 'rgba(206, 17, 38, 0.05)', border: '1px solid rgba(206, 17, 38, 0.2)' }}>
+                <h2 style={{ marginBottom: '1rem', color: '#ce1126', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    <AlertCircle size={28} /> Vía Correo
+                </h2>
+                <p style={{ fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>
+                    La forma más fácil de alimentar la base es reenviando tus facturas electrónicas (XML).
+                </p>
+                <div style={{
+                    padding: '1.25rem',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '12px',
+                    display: 'inline-block',
+                    boxShadow: 'var(--shadow-sm)'
+                }}>
+                    <p style={{ margin: 0, fontSize: '1.2rem', fontWeight: 'bold', color: '#002b7f' }}>
+                        comparaticocr@gmail.com
+                    </p>
+                </div>
+                <p style={{ mt: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '1rem' }}>
+                    * El sistema procesa las facturas automáticamente cada 10 minutos.
+                </p>
             </div>
 
-            <button
-                className="btn-primary"
-                style={{ marginTop: '1.5rem', width: '100%' }}
-                onClick={handleUpload}
-                disabled={status === 'loading'}
-            >
-                Procesar Factura
-            </button>
+            {/* Sección Secundaria - Subida Manual */}
+            <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
+                <h3 style={{ marginBottom: '0.5rem', color: '#002b7f' }}>Carga Manual</h3>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Opcionalmente, selecciona el archivo desde tu dispositivo.</p>
 
-            <div style={{
-                marginTop: '2rem',
-                padding: '1rem',
-                backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                border: '1px solid rgba(56, 189, 248, 0.2)',
-                borderRadius: '8px',
-                textAlign: 'left',
-                fontSize: '0.9rem'
-            }}>
-                <h4 style={{ color: 'var(--accent-primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <AlertCircle size={18} /> Automatización por Email
-                </h4>
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-                    También puedes enviar tus facturas XML directamente a:
-                    <br />
-                    <strong style={{ color: 'var(--text-primary)' }}>comparaticocr@gmail.com</strong>
-                </p>
-                <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-secondary)' }}>
-                    * Los correos se procesan automáticamente cada 10 minutos.
-                </p>
+                <div style={{
+                    marginTop: '1.5rem',
+                    padding: '1.5rem 1rem',
+                    border: '2px dashed var(--border-color)',
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(255,255,255,0.4)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '1rem'
+                }}>
+                    <UploadCloud size={40} color="#002b7f" />
+                    <input
+                        type="file"
+                        accept=".xml"
+                        onChange={handleFileChange}
+                        style={{ width: '100%', maxWidth: '250px', fontSize: '0.85rem' }}
+                    />
+
+                    {file && <p style={{ margin: 0, fontWeight: '500', color: '#16a34a' }}>Listo: {file.name}</p>}
+
+                    {status === 'loading' && <p>Procesando...</p>}
+                    {status === 'success' && <p style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}><CheckCircle size={20} /> {message}</p>}
+                    {status === 'error' && <p style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={20} /> {message}</p>}
+
+                </div>
+
+                <button
+                    className="btn-primary"
+                    style={{ marginTop: '1.5rem', width: '100%', backgroundColor: '#002b7f' }}
+                    onClick={handleUpload}
+                    disabled={status === 'loading' || !file}
+                >
+                    Subir XML Manualmente
+                </button>
             </div>
         </div>
     );
