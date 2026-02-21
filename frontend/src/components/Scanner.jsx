@@ -18,14 +18,28 @@ export default function Scanner() {
             await stopScanner();
         }
 
-        const html5QrCode = new Html5Qrcode('reader');
-        qrCodeRef.current = html5QrCode;
-
         try {
+            // Explicitly request cameras first to ensure permissions are handled
+            // This prevents the black-screen bug when permissions are cached
+            const devices = await Html5Qrcode.getCameras();
+            if (!devices || devices.length === 0) {
+                throw new Error("No se encontraron cámaras de video.");
+            }
+
+            // Prefer back camera if available, else use the first one
+            let cameraId = devices[0].id;
+            const backCamera = devices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('trasera'));
+            if (backCamera) {
+                cameraId = backCamera.id;
+            }
+
+            const html5QrCode = new Html5Qrcode('reader');
+            qrCodeRef.current = html5QrCode;
+
             const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
 
             await html5QrCode.start(
-                { facingMode: "environment" },
+                cameraId, // Use specific ID instead of facingMode object
                 config,
                 (result) => {
                     stopScanner();
@@ -34,9 +48,12 @@ export default function Scanner() {
             );
         } catch (err) {
             console.error("Error iniciando cámara:", err);
-            setCameraError("No se pudo acceder a la cámara o el navegador no la soporta.");
+            setCameraError(err.message || "No se pudo acceder a la cámara o el navegador no la soporta.");
             setIsScanning(false);
-            qrCodeRef.current = null;
+            if (qrCodeRef.current) {
+                qrCodeRef.current.clear();
+                qrCodeRef.current = null;
+            }
         }
     };
 
