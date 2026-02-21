@@ -40,5 +40,22 @@
    ```
 4. El sistema estará disponible en puertos locales (Frontend: 8080).
 
+## 📧 Automatización por Email (Google Apps Script)
+
+Para que las facturas enviadas a tu correo se procesen automáticamente, sigue estos pasos:
+
+1. Ve a [script.google.com](https://script.google.com/) y crea un "Nuevo proyecto".
+2. Copia el contenido de [automation/google-apps-script.js](automation/google-apps-script.js) en el editor.
+3. Reemplaza la variable `API_URL` con la URL pública de tu túnel de Cloudflare.
+4. Guarda el proyecto (Ctrl+S).
+5. Configura el Activador (Trigger):
+   - Haz clic en el ícono de **Reloj** (Activadores) en la barra lateral.
+   - Haz clic en **+ Añadir activador**.
+   - Función: `procesarCorreosNuevos`.
+   - Fuente: `Según el tiempo`.
+   - Tipo: `Temporizador por minutos`.
+   - Intervalo: `Cada 5 minutos`.
+6. Autoriza los permisos de Google cuando se te solicite (Configuración avanzada -> Ir al script).
+
 ## 🛡️ Seguridad
 Este sistema está diseñado para correr detrás de un túnel Cloudflare. Por defecto, en producción, ningún puerto de la Base de Datos ni del Backend están expuestos directamente a redes externas ni a Internet.
