@@ -10,10 +10,10 @@
 *   **Transacciones Seguras:** El endpoint `/api/upload-xml` en `server.js` utiliza correctamente transacciones de base de datos (`beginTransaction` y `commit/rollback`), garantizando que si el procesamiento falla a la mitad de una factura, no queden datos corruptos (huérfanos).
 *   **Desduplicación Efectiva:** Funciona correctamente al buscar un registro existente mediante la `claveXml`, impidiendo que el mismo archivo se cargue dos veces.
 *   **Consultas Parametrizadas:** Todas las interacciones con la base de datos utilizan consultas preparadas (`db.execute('... ?', [val])`), lo cual protege a la aplicación contra ataques de inyección SQL (SQLi).
+*   **Límites de Carga:** Se ha implementado un límite estricto de 5MB para la subida de archivos XML, previniendo ataques de agotamiento de memoria.
 
 ### ⚠️ Áreas de Mejora
 *   **Problema de Query N+1:** El ingreso de facturas hace una consulta SELECT/INSERT individual para cada ítem en el XML de forma secuencial (`for (const item of parsedData.items) { ... }`). Para facturas extremadamente grandes de supermercados mayoristas (ej. 150 items), esto puede ralentizar el servidor. *Recomendación*: Agrupar las consultas de ingreso usando inserciones en bloque (bulk inserts con sentencia `IN()`).
-*   **Límites de Carga Ausentes:** El parser de `multer` (`storage: multer.memoryStorage()`) se usa sin restricciones de tamaño. Un cliente malicioso podría intentar enviar un archivo de texto gigantesco que terminaría saturando la memoria RAM del contenedor Node, colapsándolo. *Recomendación*: Añadir un límite estricto en el middleware (Ej. `limits: { fileSize: 5 * 1024 * 1024 }` / 5MB máximo).
 *   **CORS Excesivamente Permisivo:** `app.use(cors())` acepta solicitudes de cualquier dominio. *Recomendación*: Una vez que se pase a producción madura, restringir el CORS a los dominios autorizados de acceso.
 
 ---
