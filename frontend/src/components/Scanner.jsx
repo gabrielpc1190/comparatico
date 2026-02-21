@@ -13,11 +13,16 @@ export default function Scanner() {
         setCameraError('');
         setIsScanning(true);
 
+        // Prevent double instantiations
+        if (qrCodeRef.current) {
+            await stopScanner();
+        }
+
         const html5QrCode = new Html5Qrcode('reader');
         qrCodeRef.current = html5QrCode;
 
         try {
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
 
             await html5QrCode.start(
                 { facingMode: "environment" },
@@ -31,18 +36,23 @@ export default function Scanner() {
             console.error("Error iniciando cámara:", err);
             setCameraError("No se pudo acceder a la cámara o el navegador no la soporta.");
             setIsScanning(false);
+            qrCodeRef.current = null;
         }
     };
 
     const stopScanner = async () => {
-        if (qrCodeRef.current && qrCodeRef.current.isScanning) {
+        if (qrCodeRef.current) {
             try {
-                await qrCodeRef.current.stop();
-                setIsScanning(false);
+                if (qrCodeRef.current.isScanning) {
+                    await qrCodeRef.current.stop();
+                }
+                qrCodeRef.current.clear();
             } catch (err) {
                 console.error("Error deteniendo cámara:", err);
             }
+            qrCodeRef.current = null;
         }
+        setIsScanning(false);
     };
 
     useEffect(() => {
