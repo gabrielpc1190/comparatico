@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FacturaElectronica xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.3/facturaElectronica">
+  <Clave>50621022600310182046800100001010000000001123456789</Clave>
+  <NumeroConsecutivo>00100001010000000001</NumeroConsecutivo>
+  <FechaEmision>2026-02-21T00:00:00-06:00</FechaEmision>
+  <Emisor>
+    <Nombre>Supermercado La Prueba S.A.</Nombre>
+  </Emisor>
+  <DetalleServicio>
+    <LineaDetalle>
+      <NumeroLinea>1</NumeroLinea>
+      <Codigo>
+        <Tipo>04</Tipo>
+        <Codigo>7441001000123</Codigo>
+      </Codigo>
+      <Cantidad>2.000</Cantidad>
+      <UnidadMedida>Unid</UnidadMedida>
+      <Detalle>Arroz Tio Pelon 99% Grano Entero 1.8kg</Detalle>
+      <PrecioUnitario>2450.00</PrecioUnitario>
+      <MontoTotal>4900.00</MontoTotal>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>2</NumeroLinea>
+      <Codigo>
+        <Tipo>04</Tipo>
+        <Codigo>7441234567890</Codigo>
+      </Codigo>
+      <Cantidad>1.000</Cantidad>
+      <UnidadMedida>Unid</UnidadMedida>
+      <Detalle>Frijoles Negros Don Pedro 800g</Detalle>
+      <PrecioUnitario>1200.00</PrecioUnitario>
+      <MontoTotal>1200.00</MontoTotal>
+    </LineaDetalle>
+  </DetalleServicio>
+  <ResumenFactura>
+    <TotalVenta>6100.00</TotalVenta>
+    <TotalDescuentos>0.00</TotalDescuentos>
+    <TotalVentaNeta>6100.00</TotalVentaNeta>
+    <TotalImpuesto>0.00</TotalImpuesto>
+    <TotalComprobante>6100.00</TotalComprobante>
+  </ResumenFactura>
+</FacturaElectronica>

@@ -1,0 +1,47 @@
+services:
+  db:
+    image: mariadb:latest
+    container_name: comparatico_db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  api:
+    build:
+      context: ./backend
+    container_name: comparatico_api
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=${MARIADB_USER}
+      - DB_PASSWORD=${MARIADB_PASSWORD}
+      - DB_NAME=${MARIADB_DATABASE}
+
+  web:
+    build:
+      context: ./frontend
+    container_name: comparatico_web
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:8080:80"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: comparatico_tunnel
+    restart: always
+    network_mode: host
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+
+volumes:
+  mariadb_data:

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FacturaElectronica xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.3/facturaElectronica">
+  <Clave>50621022600010111222333444555666777888999000111222</Clave>
+  <NumeroConsecutivo>00100001010000000002</NumeroConsecutivo>
+  <FechaEmision>2026-01-10T10:00:00-06:00</FechaEmision>
+  <Emisor>
+    <Nombre>Supermercado La Oferta</Nombre>
+    <Identificacion>
+      <Tipo>01</Tipo>
+      <Numero>101112223</Numero>
+    </Identificacion>
+  </Emisor>
+  <DetalleServicio>
+    <LineaDetalle>
+      <NumeroLinea>1</NumeroLinea>
+      <Codigo>
+        <Tipo>04</Tipo>
+        <Codigo>7441001000123</Codigo>
+      </Codigo>
+      <Cantidad>2.000</Cantidad>
+      <UnidadMedida>Unid</UnidadMedida>
+      <Detalle>Arroz Tio Pelon 99% Grano Entero 1.8kg</Detalle>
+      <PrecioUnitario>2350.00000</PrecioUnitario>
+      <MontoTotal>4700.00000</MontoTotal>
+    </LineaDetalle>
+    <LineaDetalle>
+      <NumeroLinea>2</NumeroLinea>
+      <Codigo>
+        <Tipo>04</Tipo>
+        <Codigo>7441071000456</Codigo>
+      </Codigo>
+      <Cantidad>1.000</Cantidad>
+      <UnidadMedida>Unid</UnidadMedida>
+      <Detalle>Jugo Dos Pinos Naranja 1.8L</Detalle>
+      <PrecioUnitario>2200.00000</PrecioUnitario>
+      <MontoTotal>2200.00000</MontoTotal>
+    </LineaDetalle>
+  </DetalleServicio>
+  <ResumenFactura>
+    <TotalComprobante>6900.00000</TotalComprobante>
+  </ResumenFactura>
+</FacturaElectronica>
