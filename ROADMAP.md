@@ -17,6 +17,7 @@ Este documento describe la hoja de ruta y las futuras expansiones planificadas p
 - [ ] **Modo Oscuro Integrado**: Temas dinámicos según las preferencias del sistema del usuario.
 - [ ] **PWA (Progressive Web App)**: Permitir la instalación de la web app en teléfonos móviles con un icono de inicio y modo offline básico.
 - [ ] **Filtros Avanzados**: Filtrar búsquedas por establecimiento o por rango de fechas (ej: "precios de los últimos 30 días").
+- [ ] **Geolocalización y Cercanía**: Compartir ubicación del usuario para mostrar precios de productos en supermercados cercanos, permitiendo filtrar resultados en un radio específico (ej: 1 KM, 5 KM, 10 KM, 20 KM).
 
 ### 2. Análisis e Historial
 - [ ] **Gráficos de Evolución**: Visualización de la curva de precios de un producto específico a lo largo del tiempo utilizando librerías como Recharts o Chart.js.
