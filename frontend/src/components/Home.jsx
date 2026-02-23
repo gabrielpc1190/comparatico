@@ -120,6 +120,11 @@ export default function Home() {
                             <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>Comparte facturas</h3>
                             <p style={{ fontSize: '0.9rem', margin: 0 }}>Envíalas a comparaticocr@gmail.com para actualizar los precios para todos.</p>
                         </div>
+                        <div style={{ padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '12px' }}>
+                            <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>📍</span>
+                            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>Cerca de ti</h3>
+                            <p style={{ fontSize: '0.9rem', margin: 0 }}>Acepta el acceso a ubicación para ver primero las tiendas que tienes más cerca.</p>
+                        </div>
                     </div>
                 </div>
             )}
