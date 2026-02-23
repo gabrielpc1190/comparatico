@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, ScanBarcode } from 'lucide-react';
 import InstallPrompt from './InstallPrompt';
+
 export default function Home() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [query, setQuery] = useState(searchParams.get('barcode') || '');

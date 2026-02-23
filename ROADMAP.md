@@ -17,9 +17,10 @@ Este documento describe la hoja de ruta y las futuras expansiones planificadas p
 
 ### 1. Mejoras de UI/UX
 - [x] **Modo Oscuro Integrado**: Temas dinámicos según las preferencias del sistema del usuario (Actualmente vía CSS).
-- [x] **PWA (Progressive Web App)**: Permitir la instalación de la web app en teléfonos móviles con un icono de inicio y modo offline básico.
+- [x] **PWA (Progressive Web App)**: Permitir la instalación de la web app en teléfonos móviles con un icono de inicio y modo offline básico. ✅ (23 Feb)
+- [x] **Dashboard de Estadísticas**: Visualización rápida del total de facturas, productos y tiendas en la pantalla de inicio. ✅ (23 Feb)
 - [ ] **Filtros Avanzados**: Filtrar búsquedas por establecimiento o por rango de fechas (ej: "precios de los últimos 30 días").
-- [x] **Geolocalización y Cercanía**: Compartir ubicación del usuario para mostrar precios de productos en supermercados cercanos.
+- [x] **Geolocalización y Cercanía**: Compartir ubicación del usuario para mostrar precios de productos en supermercados cercanos. ✅ (21 Feb)
 
 ### 2. Análisis e Historial
 - [ ] **Gráficos de Evolución**: Visualización de la curva de precios de un producto específico a lo largo del tiempo utilizando librerías como Recharts o Chart.js.

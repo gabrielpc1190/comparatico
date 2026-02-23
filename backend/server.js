@@ -171,60 +171,6 @@ app.post('/api/upload-xml', uploadLimiter, upload.single('factura'), async (req,
     }
 });
 
-app.get('/api/test/nearby', nearbyLimiter, async (req, res) => {
-    const { lat, lng, radius } = req.query; // radius in km
-    if (!lat || !lng) {
-        return res.status(400).json({ error: 'Faltan parámetros de latitud (lat) o longitud (lng).' });
-    }
-
-    const radKm = parseFloat(radius) || 5; // Default 5 km
-    const userLat = parseFloat(lat);
-    const userLng = parseFloat(lng);
-
-    // Grid Caching Logic: Round to 2 decimal places (~1.1km precision)
-    const gridKey = `${userLat.toFixed(2)}|${userLng.toFixed(2)}|${radKm}`;
-    const cachedResults = geoCache.get(gridKey);
-
-    if (cachedResults) {
-        console.log(`[CACHE HIT] Sirviendo resultados para grid: ${gridKey}`);
-        return res.json({
-            status: 'success',
-            busqueda: { lat: userLat, lng: userLng, radio_km: radKm, cached: true },
-            resultados: cachedResults
-        });
-    }
-
-    try {
-        const sql = `
-            SELECT 
-                id, nombre, latitud, longitud, direccion,
-                (6371 * acos(
-                    cos(radians(?)) * cos(radians(latitud)) * 
-                    cos(radians(longitud) - radians(?)) + 
-                    sin(radians(?)) * sin(radians(latitud))
-                )) AS distancia_km
-            FROM establecimientos
-            WHERE latitud IS NOT NULL AND longitud IS NOT NULL
-            HAVING distancia_km <= ?
-            ORDER BY distancia_km ASC
-            LIMIT 20
-        `;
-        const [stores] = await db.execute(sql, [userLat, userLng, userLat, radKm]);
-
-        // Save to cache before sending
-        geoCache.set(gridKey, stores);
-
-        res.json({
-            status: 'success',
-            busqueda: { lat: userLat, lng: userLng, radio_km: radKm, cached: false },
-            resultados: stores
-        });
-    } catch (error) {
-        console.error('Error calculando ubicaciones cercanas:', error.message);
-        res.status(500).json({ error: error.message });
-    }
-});
-
 app.get('/api/products/search', async (req, res) => {
     const { q, lat, lng } = req.query;
     if (!q) {
@@ -359,6 +305,22 @@ app.get('/api/products/:identifier', async (req, res) => {
         const [prices] = await db.execute(sqlPrices, queryParams);
 
         res.json({ product, prices });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// --- STATS ENDPOINT ---
+app.get('/api/stats', async (req, res) => {
+    try {
+        const [stats] = await db.execute(`
+            SELECT 
+                (SELECT COUNT(*) FROM productos) as total_productos,
+                (SELECT COUNT(*) FROM precios) as total_precios,
+                (SELECT COUNT(*) FROM recibos) as total_recibos,
+                (SELECT COUNT(DISTINCT establecimiento) FROM recibos) as total_tiendas
+        `);
+        res.json(stats[0]);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Search, ScanBarcode, UploadCloud } from 'lucide-react';
+import { Search, ScanBarcode, UploadCloud, BarChart3 } from 'lucide-react';
 import Home from './components/Home';
 import Scanner from './components/Scanner';
 import Upload from './components/Upload';
-import TestGeolocation from './components/TestGeolocation';
+import Stats from './components/Stats';
 
 function App() {
   return (
@@ -35,15 +35,18 @@ function AppContent() {
       <main className="animate-fade-in" style={{ paddingBottom: '120px' }}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/stats" element={<Stats />} />
           <Route path="/scanner" element={<Scanner />} />
           <Route path="/upload" element={<Upload />} />
-          <Route path="/test" element={<TestGeolocation />} />
         </Routes>
       </main>
 
       <nav className="glass-panel" style={{ position: 'fixed', bottom: '1rem', left: '1rem', right: '1rem', display: 'flex', justifyContent: 'space-around', padding: '0.75rem', zIndex: 50 }}>
         <Link to="/" style={{ color: location.pathname === '/' ? 'var(--accent-primary)' : 'var(--text-secondary)' }} className="flex-center">
           <Search size={24} />
+        </Link>
+        <Link to="/stats" style={{ color: location.pathname === '/stats' ? 'var(--accent-primary)' : 'var(--text-secondary)' }} className="flex-center">
+          <BarChart3 size={24} />
         </Link>
         <Link to="/scanner" style={{ color: location.pathname === '/scanner' ? 'var(--accent-primary)' : 'var(--text-secondary)' }} className="flex-center">
           <ScanBarcode size={24} />
