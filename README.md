@@ -5,10 +5,11 @@
 ## 🚀 Características Principales
 
 - **Ingesta Automatizada 🤖**: Las facturas enviadas a un correo específico son procesadas y cargadas automáticamente en la base de datos a través de Google Apps Script.
-- **Comparativa de Precios 💰**: Busca productos por nombre o código de barras y visualiza el último precio registrado en diferentes establecimientos.
+- **Geolocalización Inteligente 📍**: Extrae automáticamente las coordenadas de los supermercados usando Google Places API y te sugiere los precios más cercanos a ti.
+- **Comparativa de Precios 💰**: Busca productos por nombre o código de barras y visualiza el último precio registrado, ordenado por proximidad si tienes el GPS activo.
 - **Escáner Integrado 📸**: Usa la cámara de tu dispositivo móvil para escanear productos directamente en los pasillos del supermercado.
 - **Historial de Precios 📈**: Mantiene un registro cronológico de cada compra, preparando el terreno para análisis de inflación y evolución de precios.
-- **Despliegue Seguro 🔒**: Arquitectura dockerizada con Nginx y MariaDB, expuesta de manera segura mediante Cloudflare Tunnels (Zero Trust).
+- **Seguridad y Rendimiento 🛡️**: Protegido contra abusos con Rate Limiting y optimizado con Caché Espacial. Despliegue seguro dockerizado con Nginx, MariaDB y Cloudflare Tunnels (Zero Trust).
 
 ## 🏗️ Arquitectura Técnica
 
