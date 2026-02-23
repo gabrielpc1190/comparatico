@@ -6,13 +6,15 @@ const { LRUCache } = require('lru-cache');
 const db = require('./db');
 const { parseFacturaCR } = require('./xmlParser');
 const GeocodingService = require('./geocodingService');
+const NameCleaningService = require('./nameCleaningService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
-// Global service instance
+// Global service instances
 const geoService = new GeocodingService(db, GOOGLE_MAPS_API_KEY);
+const nameService = new NameCleaningService(db);
 
 // Trust Cloudflare/Proxy headers for accurate IP detection
 app.set('trust proxy', 1);
@@ -96,9 +98,7 @@ app.post('/api/upload-xml', uploadLimiter, upload.single('factura'), async (req,
         const uniqueItems = Array.from(uniqueItemsMap.values());
         const priceEntries = [];
 
-        // 3. Handle Products (Find or Create)
-        // We still do this in a loop for safety with UNIQUE constraints, 
-        // but we only do it for UNIQUE items in the XML.
+        // 3. Handle Products (Find, Match, or Create)
         for (const item of uniqueItems) {
             let productoId;
             const codBarras = item.codigoBarras ? item.codigoBarras : null;
@@ -109,15 +109,28 @@ app.post('/api/upload-xml', uploadLimiter, upload.single('factura'), async (req,
                     productoId = prodRows[0].id;
                 }
             } else {
+                // Exact name match first (fastest)
                 const [nameRows] = await connection.execute('SELECT id FROM productos WHERE nombre = ? AND codigoBarras IS NULL', [item.nombre]);
                 if (nameRows.length > 0) {
                     productoId = nameRows[0].id;
+                } else {
+                    // Smart Hybrid Name Cleaning (Fuzzy + LLM)
+                    // Fetch current catalog of products without barcodes
+                    const [catalog] = await connection.execute('SELECT id, nombre FROM productos WHERE codigoBarras IS NULL');
+                    const matchResult = await nameService.findBestMatch(item.nombre, catalog);
+
+                    if (matchResult.action === 'MERGE') {
+                        productoId = matchResult.targetId;
+                        console.log(`[SMART CLEANING] Unificando "${item.nombre}" con ID ${productoId} (Confianza: ${matchResult.confidence}%, Método: ${matchResult.method})`);
+                    }
                 }
             }
 
+            // Create new product if no match found
             if (!productoId) {
                 const [newProdResult] = await connection.execute('INSERT INTO productos (codigoBarras, nombre) VALUES (?, ?)', [codBarras, item.nombre]);
                 productoId = newProdResult.insertId;
+                console.log(`[SMART CLEANING] Creando nuevo producto: "${item.nombre}"`);
             }
 
             // Map this product ID back to all original occurrences in the XML (if any duplicates existed)
