@@ -3,6 +3,7 @@ import { Search, ScanBarcode, UploadCloud } from 'lucide-react';
 import Home from './components/Home';
 import Scanner from './components/Scanner';
 import Upload from './components/Upload';
+import TestGeolocation from './components/TestGeolocation';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/scanner" element={<Scanner />} />
           <Route path="/upload" element={<Upload />} />
+          <Route path="/test" element={<TestGeolocation />} />
         </Routes>
       </main>
 

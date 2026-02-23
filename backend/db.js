@@ -16,6 +16,17 @@ const initDb = async () => {
     console.log('--- Iniciando migración de esquema a MariaDB ---');
 
     await connection.execute(`
+      CREATE TABLE IF NOT EXISTS establecimientos (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nombre VARCHAR(255) UNIQUE NOT NULL,
+        latitud DECIMAL(10, 8),
+        longitud DECIMAL(11, 8),
+        direccion TEXT,
+        creadoEn DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await connection.execute(`
       CREATE TABLE IF NOT EXISTS productos (
         id INT AUTO_INCREMENT PRIMARY KEY,
         codigoBarras VARCHAR(100) UNIQUE,

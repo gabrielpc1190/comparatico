@@ -112,6 +112,47 @@ app.post('/api/upload-xml', upload.single('factura'), async (req, res) => {
     }
 });
 
+app.get('/api/test/nearby', async (req, res) => {
+    const { lat, lng, radius } = req.query; // radius in km
+    if (!lat || !lng) {
+        return res.status(400).json({ error: 'Faltan parámetros de latitud (lat) o longitud (lng).' });
+    }
+
+    const radKm = parseFloat(radius) || 5; // Default 5 km
+    const userLat = parseFloat(lat);
+    const userLng = parseFloat(lng);
+
+    try {
+        const sql = `
+            SELECT 
+                id, nombre, latitud, longitud, direccion,
+                (6371 * acos(
+                    cos(radians(?)) * cos(radians(latitud)) * 
+                    cos(radians(longitud) - radians(?)) + 
+                    sin(radians(?)) * sin(radians(latitud))
+                )) AS distancia_km
+            FROM establecimientos
+            WHERE latitud IS NOT NULL AND longitud IS NOT NULL
+            HAVING distancia_km <= ?
+            ORDER BY distancia_km ASC
+            LIMIT 20
+        `;
+        const [stores] = await db.execute(sql, [userLat, userLng, userLat, radKm]);
+
+        // Para enriquecer esto un poco, podríamos traer el último precio de cada tienda,
+        // pero por ahora solo retornamos las tiendas más cercanas para la prueba de concepto.
+
+        res.json({
+            status: 'success',
+            busqueda: { lat: userLat, lng: userLng, radio_km: radKm },
+            resultados: stores
+        });
+    } catch (error) {
+        console.error('Error calculando ubicaciones cercanas:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.get('/api/products/search', async (req, res) => {
     const { q } = req.query;
     if (!q) {

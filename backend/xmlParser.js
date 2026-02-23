@@ -41,7 +41,27 @@ function parseFacturaCR(xmlString) {
         log(`Identificador Único (Clave): ${xmlHash}`);
 
         // Get Establishment / Emisor
-        const establecimiento = doc.Emisor?.Nombre || 'Desconocido';
+        const emisor = doc.Emisor || {};
+        const nombreLegal = emisor.Nombre || 'Desconocido';
+        const nombreComercial = emisor.NombreComercial;
+
+        let establecimientoName = nombreLegal;
+        if (nombreComercial && nombreComercial.trim() !== '' && nombreComercial.trim() !== nombreLegal.trim()) {
+            establecimientoName = `${nombreComercial} (${nombreLegal})`;
+        } else if (nombreComercial && nombreComercial.trim() !== '') {
+            establecimientoName = nombreComercial;
+        }
+
+        const ubicacion = emisor.Ubicacion;
+        let detalleUbicacion = '';
+        if (ubicacion && ubicacion.OtrasSenas) {
+            detalleUbicacion = ` - ${ubicacion.OtrasSenas}`;
+        }
+
+        // We compose a string that includes the business name and addressing details
+        // so it saves uniquely in the DB and gives Google Maps more context
+        const establecimiento = `${establecimientoName}${detalleUbicacion}`;
+
         let fecha = doc.FechaEmision ? new Date(doc.FechaEmision) : new Date();
         // Format to YYYY-MM-DD HH:mm:ss for MariaDB
         fecha = fecha.toISOString().slice(0, 19).replace('T', ' ');
