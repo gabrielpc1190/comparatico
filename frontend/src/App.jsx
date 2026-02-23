@@ -32,7 +32,7 @@ function AppContent() {
         </Link>
       </header>
 
-      <main className="animate-fade-in" style={{ paddingBottom: '80px' }}>
+      <main className="animate-fade-in" style={{ paddingBottom: '120px' }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/scanner" element={<Scanner />} />

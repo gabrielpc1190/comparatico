@@ -73,7 +73,7 @@ export default function Home() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
             <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                <h2 style={{ marginBottom: '1rem', color: '#002b7f' }}>Buscar Producto</h2>
+                <h2 style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }}>Buscar Producto</h2>
                 <p>Ingresa el nombre o escanea un código de barras para encontrar los mejores precios.</p>
 
                 <form onSubmit={onSubmit} style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', width: '100%' }}>
@@ -99,25 +99,25 @@ export default function Home() {
             {/* Guía de Inicio - Solo se muestra si no hay búsqueda activa y no hay resultados */}
             {results.length === 0 && !isSearching && !query && (
                 <div className="glass-panel" style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
-                    <h2 style={{ fontSize: '1.75rem', marginBottom: '1rem', color: '#002b7f' }}>¡Pura Vida! 🇨🇷</h2>
+                    <h2 style={{ fontSize: '1.75rem', marginBottom: '1rem', color: 'var(--accent-primary)' }}>¡Pura Vida! 🇨🇷</h2>
                     <p style={{ fontSize: '1.1rem', marginBottom: '2rem', color: 'var(--text-secondary)' }}>
                         Bienvenido a <strong>Comparatico</strong>, tu aliado para ahorrar en el súper.
                     </p>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', textAlign: 'left' }}>
-                        <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+                        <div style={{ padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '12px' }}>
                             <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>🔎</span>
-                            <h3 style={{ fontSize: '1.1rem', color: '#002b7f' }}>Busca y Compara</h3>
+                            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>Busca y Compara</h3>
                             <p style={{ fontSize: '0.9rem', margin: 0 }}>Escribe el nombre de lo que ocupas y mira dónde está más barato.</p>
                         </div>
-                        <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+                        <div style={{ padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '12px' }}>
                             <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>📷</span>
-                            <h3 style={{ fontSize: '1.1rem', color: '#002b7f' }}>En los pasillos</h3>
+                            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>En los pasillos</h3>
                             <p style={{ fontSize: '0.9rem', margin: 0 }}>Usa el ícono de código de barras abajo para escanear productos físicos en la pulpería.</p>
                         </div>
-                        <div style={{ padding: '1rem', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+                        <div style={{ padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '12px' }}>
                             <span style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem' }}>📧</span>
-                            <h3 style={{ fontSize: '1.1rem', color: '#002b7f' }}>Comparte facturas</h3>
+                            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>Comparte facturas</h3>
                             <p style={{ fontSize: '0.9rem', margin: 0 }}>Envíalas a comparaticocr@gmail.com para actualizar los precios para todos.</p>
                         </div>
                     </div>
@@ -146,7 +146,7 @@ export default function Home() {
                             <div key={prod.id} className="glass-panel" style={{
                                 padding: '1.25rem',
                             }}>
-                                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: '#002b7f' }}>{prod.nombre}</h3>
+                                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{prod.nombre}</h3>
                                 {prod.codigoBarras && <p style={{ fontSize: '0.85rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>EAN: {prod.codigoBarras}</p>}
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -158,12 +158,12 @@ export default function Home() {
                                                 justifyContent: 'space-between',
                                                 alignItems: 'center',
                                                 padding: '0.85rem',
-                                                backgroundColor: idx === 0 && !isOutdated ? 'rgba(74, 222, 128, 0.2)' : 'rgba(255,255,255,0.6)',
-                                                border: idx === 0 && !isOutdated ? '1px solid rgba(74, 222, 128, 0.4)' : '1px solid rgba(0,0,0,0.05)',
+                                                backgroundColor: idx === 0 && !isOutdated ? 'rgba(74, 222, 128, 0.2)' : 'var(--bg-secondary)',
+                                                border: idx === 0 && !isOutdated ? '1px solid rgba(74, 222, 128, 0.4)' : '1px solid var(--border-color)',
                                                 borderRadius: '8px'
                                             }}>
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontWeight: '600', fontSize: '0.95rem', color: '#1e293b' }}>
+                                                    <span style={{ fontWeight: '600', fontSize: '0.95rem', color: 'var(--text-primary)' }}>
                                                         {t.establecimiento}
                                                         {t.distancia_km !== undefined && (
                                                             <span style={{
@@ -183,7 +183,7 @@ export default function Home() {
                                                 <span style={{
                                                     fontWeight: '700',
                                                     fontSize: '1.15rem',
-                                                    color: isOutdated ? '#94a3b8' : (idx === 0 ? '#16a34a' : '#0f172a'),
+                                                    color: isOutdated ? '#94a3b8' : (idx === 0 ? '#16a34a' : 'var(--text-primary)'),
                                                     textDecoration: isOutdated ? 'line-through' : 'none',
                                                     opacity: isOutdated ? 0.7 : 1
                                                 }}>
