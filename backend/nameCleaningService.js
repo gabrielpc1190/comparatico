@@ -10,19 +10,54 @@ class NameCleaningService {
         // Thresholds
         this.EXACT_MATCH_THRESHOLD = 92; // >= 92% is considered an exact match
         this.GRAY_AREA_THRESHOLD = 65;   // Between 65% and 91% goes to LLM
-
-        // Tail cleaning regex: Captures weight/unit clutter at the end of names
-        this.tailRegex = /\s+(\d+)?(\s+00)?\s*(g|kg|ml|l|unid|oz|lb)(\s+\d+)?$/i;
     }
 
     /**
-     * Removes trailing weight/unit clutter from a name for better visual display.
+     * Uses the local LLM to cleanly format a product name, preserving weight/units.
      * @param {string} name 
-     * @returns {string}
+     * @param {number} cantidad Optional quantity context from invoice
+     * @param {string} unidadMedida Optional unit context from invoice
+     * @returns {Promise<string>}
      */
-    sanitizeVisualName(name) {
+    async beautifyName(name, cantidad = null, unidadMedida = null) {
         if (!name) return '';
-        return name.replace(this.tailRegex, '').trim();
+
+        let extraContext = "";
+        if (cantidad !== null && unidadMedida !== null) {
+            extraContext = `\nCONTEXTO ADICIONAL DE LA FACTURA: El sistema indica que la cantidad facturada es "${cantidad}" en unidad "${unidadMedida}". 
+Si el nombre original tiene números como "100" pero el contexto dice "1", asume que "100" son en realidad decimales "1.00" y usa el valor del contexto (1).`;
+        }
+
+        const prompt = `
+Actúa como un experto formateador de datos comerciales. Tengo un nombre de producto "sucio" con ruidos técnicos al final.
+Tu tarea es devolverme el nombre LIMPIO Y LEGIBLE en español.
+
+REGLAS CRÍTICAS:
+1. MANTÉN los espacios entre las palabras (ej. "Arroz Tio Pelon").
+2. MANTÉN el peso o volumen real del producto (ej. 500g, 1kg, 350ml). 
+3. REGLA DE ORO PARA PESOS: Si ves un número seguido de espacios y ceros (ej. "1 00 kg" o "1 0 0 g"), interpreta los ceros como decimales. "1 00 kg" es "1kg", NO "100kg".
+4. Une el número a su unidad (ej: "500g" es correcto, "500 g" no).
+5. Usa Mayúsculas y Minúsculas correctamente para legibilidad.
+6. NO inventes pesos si no estás seguro.
+${extraContext}
+
+Nombre Original: "${name}"
+
+Devuelve ÚNICAMENTE el nombre limpio final corregido. Sin comillas ni explicaciones adicionales.`;
+
+        try {
+            const response = await axios.post(`${this.ollamaUrl}/api/generate`, {
+                model: this.ollamaModel,
+                prompt: prompt,
+                stream: false,
+                options: { temperature: 0.1 }
+            }, { timeout: 10000 });
+
+            return response.data.response.trim();
+        } catch (error) {
+            console.warn(`[Beautify Error] Falló LLM para "${name}": ${error.message}`);
+            return name; // Fallback to original if LLM fails
+        }
     }
 
     /**
@@ -92,8 +127,9 @@ Responde ÚNICAMENTE con la palabra "SI" o "NO". No agregues ninguna otra palabr
             return { action: 'NEW' };
         }
 
-        const sanitizedNew = this.sanitizeVisualName(newProductName);
-        const normNew = this.normalize(sanitizedNew);
+        // We don't beautify here because findBestMatch is called multiple times
+        // during searching. We should beautify the name ONCE before saving or matching.
+        const normNew = this.normalize(newProductName);
 
         // Prepare array of normalized catalog names for Fuzzball
         const choices = catalog.map(p => this.normalize(p.nombre));

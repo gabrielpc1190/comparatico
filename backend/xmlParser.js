@@ -89,10 +89,12 @@ function parseFacturaCR(xmlString) {
                 const item = {
                     codigoBarras: barcode,
                     nombre: linea.Detalle || 'Producto',
-                    precio: linea.PrecioUnitario || 0
+                    precio: linea.PrecioUnitario || 0,
+                    cantidad: linea.Cantidad || 1,
+                    unidadMedida: linea.UnidadMedida || ''
                 };
 
-                log(`  [Línea ${index + 1}] Prod: ${item.nombre.substring(0, 30)}... | Barcode: ${item.codigoBarras || 'N/A'} | Precio: ${item.precio}`);
+                log(`  [Línea ${index + 1}] Prod: ${item.nombre.substring(0, 30)}... | Cant: ${item.cantidad} ${item.unidadMedida} | Precio: ${item.precio}`);
                 return item;
             });
         } else {

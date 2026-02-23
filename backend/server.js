@@ -103,34 +103,39 @@ app.post('/api/upload-xml', uploadLimiter, upload.single('factura'), async (req,
             let productoId;
             const codBarras = item.codigoBarras ? item.codigoBarras : null;
 
+            // --- PASO 3: LIMPIEZA INTELIGENTE DE NOMBRES ---
+            // "PAN BM EIFFEL 520 G 520 00 G 0" -> "Pan BM Eiffel 520g"
+            const cleanName = await nameService.beautifyName(item.nombre, item.cantidad, item.unidadMedida);
+
             if (codBarras) {
                 const [prodRows] = await connection.execute('SELECT id FROM productos WHERE codigoBarras = ?', [codBarras]);
                 if (prodRows.length > 0) {
                     productoId = prodRows[0].id;
                 }
             } else {
-                // Exact name match first (fastest)
-                const [nameRows] = await connection.execute('SELECT id FROM productos WHERE nombre = ? AND codigoBarras IS NULL', [item.nombre]);
+                // Exact name match first (fastest) 
+                // We match against the beautified name
+                const [nameRows] = await connection.execute('SELECT id FROM productos WHERE nombre = ? AND codigoBarras IS NULL', [cleanName]);
                 if (nameRows.length > 0) {
                     productoId = nameRows[0].id;
                 } else {
                     // Smart Hybrid Name Cleaning (Fuzzy + LLM)
                     // Fetch current catalog of products without barcodes
                     const [catalog] = await connection.execute('SELECT id, nombre FROM productos WHERE codigoBarras IS NULL');
-                    const matchResult = await nameService.findBestMatch(item.nombre, catalog);
+                    const matchResult = await nameService.findBestMatch(cleanName, catalog);
 
                     if (matchResult.action === 'MERGE') {
                         productoId = matchResult.targetId;
-                        console.log(`[SMART CLEANING] Unificando "${item.nombre}" con ID ${productoId} (Confianza: ${matchResult.confidence}%, Método: ${matchResult.method})`);
+                        console.log(`[SMART CLEANING] Unificando "${cleanName}" con ID ${productoId} (Confianza: ${matchResult.confidence}%, Método: ${matchResult.method})`);
                     }
                 }
             }
 
             // Create new product if no match found
             if (!productoId) {
-                const [newProdResult] = await connection.execute('INSERT INTO productos (codigoBarras, nombre) VALUES (?, ?)', [codBarras, item.nombre]);
+                const [newProdResult] = await connection.execute('INSERT INTO productos (codigoBarras, nombre) VALUES (?, ?)', [codBarras, cleanName]);
                 productoId = newProdResult.insertId;
-                console.log(`[SMART CLEANING] Creando nuevo producto: "${item.nombre}"`);
+                console.log(`[SMART CLEANING] Creando nuevo producto: "${cleanName}"`);
             }
 
             // Map this product ID back to all original occurrences in the XML (if any duplicates existed)
