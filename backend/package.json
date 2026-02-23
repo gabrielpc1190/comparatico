@@ -16,7 +16,9 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
     "fast-xml-parser": "^5.3.7",
+    "lru-cache": "^11.2.6",
     "multer": "^2.0.2",
     "mysql2": "^3.17.4"
   },

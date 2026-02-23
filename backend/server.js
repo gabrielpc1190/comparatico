@@ -1,11 +1,47 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const { rateLimit } = require('express-rate-limit');
+const { LRUCache } = require('lru-cache');
 const db = require('./db');
 const { parseFacturaCR } = require('./xmlParser');
+const GeocodingService = require('./geocodingService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+
+// Global service instance
+const geoService = new GeocodingService(db, GOOGLE_MAPS_API_KEY);
+
+// Trust Cloudflare/Proxy headers for accurate IP detection
+app.set('trust proxy', 1);
+
+// --- Security & Performance Config ---
+
+// 1. Rate Limiters
+const uploadLimiter = rateLimit({
+    windowMs: 24 * 60 * 60 * 1000, // 24 hours
+    limit: 30, // Limit each IP to 30 uploads per day
+    message: { error: 'Límite de subidas diarias alcanzado (30 por día). Intenta de nuevo mañana.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const nearbyLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    limit: 100, // Limit each IP to 100 nearby searches per hour
+    message: { error: 'Demasiadas consultas de ubicación. Intenta de nuevo en una hora.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// 2. Spatial Cache (Grid-based LRU)
+// Max 500 different grid cells, 1 hour TTL
+const geoCache = new LRUCache({
+    max: 500,
+    ttl: 1000 * 60 * 60,
+});
 
 app.use(cors());
 app.use(express.json());
@@ -20,7 +56,7 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Comparatico API (MariaDB) is running' });
 });
 
-app.post('/api/upload-xml', upload.single('factura'), async (req, res) => {
+app.post('/api/upload-xml', uploadLimiter, upload.single('factura'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No se subió ningún archivo' });
     }
@@ -98,6 +134,11 @@ app.post('/api/upload-xml', upload.single('factura'), async (req, res) => {
         await connection.commit();
         console.log(`--- Éxito: Se registraron ${priceEntries.length} productos de ${parsedData.establecimiento} (Bulk Insert) ---`);
 
+        // 5. Trigger Geocoding in background (no await to avoid slowing down the response)
+        geoService.geocodeAndSync(parsedData.establecimiento).catch(err => {
+            console.error(`[BG GEO ERROR] Error geocodificando "${parsedData.establecimiento}":`, err.message);
+        });
+
         res.json({
             success: true,
             message: `XML procesado con éxito. Se añadieron precios para ${priceEntries.length} productos mediante inserción masiva.`,
@@ -112,7 +153,7 @@ app.post('/api/upload-xml', upload.single('factura'), async (req, res) => {
     }
 });
 
-app.get('/api/test/nearby', async (req, res) => {
+app.get('/api/test/nearby', nearbyLimiter, async (req, res) => {
     const { lat, lng, radius } = req.query; // radius in km
     if (!lat || !lng) {
         return res.status(400).json({ error: 'Faltan parámetros de latitud (lat) o longitud (lng).' });
@@ -121,6 +162,19 @@ app.get('/api/test/nearby', async (req, res) => {
     const radKm = parseFloat(radius) || 5; // Default 5 km
     const userLat = parseFloat(lat);
     const userLng = parseFloat(lng);
+
+    // Grid Caching Logic: Round to 2 decimal places (~1.1km precision)
+    const gridKey = `${userLat.toFixed(2)}|${userLng.toFixed(2)}|${radKm}`;
+    const cachedResults = geoCache.get(gridKey);
+
+    if (cachedResults) {
+        console.log(`[CACHE HIT] Sirviendo resultados para grid: ${gridKey}`);
+        return res.json({
+            status: 'success',
+            busqueda: { lat: userLat, lng: userLng, radio_km: radKm, cached: true },
+            resultados: cachedResults
+        });
+    }
 
     try {
         const sql = `
@@ -139,12 +193,12 @@ app.get('/api/test/nearby', async (req, res) => {
         `;
         const [stores] = await db.execute(sql, [userLat, userLng, userLat, radKm]);
 
-        // Para enriquecer esto un poco, podríamos traer el último precio de cada tienda,
-        // pero por ahora solo retornamos las tiendas más cercanas para la prueba de concepto.
+        // Save to cache before sending
+        geoCache.set(gridKey, stores);
 
         res.json({
             status: 'success',
-            busqueda: { lat: userLat, lng: userLng, radio_km: radKm },
+            busqueda: { lat: userLat, lng: userLng, radio_km: radKm, cached: false },
             resultados: stores
         });
     } catch (error) {
@@ -154,13 +208,18 @@ app.get('/api/test/nearby', async (req, res) => {
 });
 
 app.get('/api/products/search', async (req, res) => {
-    const { q } = req.query;
+    const { q, lat, lng } = req.query;
     if (!q) {
         return res.status(400).json({ error: 'Parámetro de búsqueda requerido' });
     }
 
     try {
         const queryTerm = `%${q}%`;
+        const hasCoords = lat && lng;
+        const userLat = hasCoords ? parseFloat(lat) : null;
+        const userLng = hasCoords ? parseFloat(lng) : null;
+
+        // If coordinates provided, we'll need to join with establecimientos to get distances
         const sql = `
       WITH UltimosPrecios AS (
         SELECT 
@@ -179,10 +238,17 @@ app.get('/api/products/search', async (req, res) => {
             up.establecimiento,
             up.fecha_lectura,
             pr.precio,
-            DATEDIFF(CURRENT_TIMESTAMP, up.fecha_lectura) AS dias_antiguedad
+            DATEDIFF(CURRENT_TIMESTAMP, up.fecha_lectura) AS dias_antiguedad,
+            e.latitud, e.longitud
+            ${hasCoords ? `, (6371 * acos(
+                        cos(radians(?)) * cos(radians(e.latitud)) * 
+                        cos(radians(e.longitud) - radians(?)) + 
+                        sin(radians(?)) * sin(radians(e.latitud))
+                    )) AS distancia_km` : ''}
         FROM UltimosPrecios up
         JOIN recibos r ON r.establecimiento = up.establecimiento AND r.fecha = up.fecha_lectura
         JOIN precios pr ON pr.reciboId = r.id AND pr.productoId = up.productoId
+        LEFT JOIN establecimientos e ON up.establecimiento = e.nombre
       )
       SELECT 
           p.id, 
@@ -191,23 +257,41 @@ app.get('/api/products/search', async (req, res) => {
           MIN(pd.precio) as min_precio, 
           MAX(pd.precio) as max_precio, 
           COUNT(DISTINCT pd.establecimiento) as num_precios,
-          (SELECT JSON_ARRAYAGG(JSON_OBJECT('establecimiento', pd2.establecimiento, 'precio', pd2.precio, 'dias', pd2.dias_antiguedad)) 
-           FROM PreciosDetalle pd2 WHERE pd2.productoId = p.id) as tiendas
+          (SELECT JSON_ARRAYAGG(
+              JSON_OBJECT(
+                  'establecimiento', pd2.establecimiento, 
+                  'precio', pd2.precio, 
+                  'dias', pd2.dias_antiguedad
+                  ${hasCoords ? ", 'distancia_km', pd2.distancia_km" : ""}
+              )
+           ) 
+           FROM PreciosDetalle pd2 WHERE pd2.productoId = p.id
+           ${hasCoords ? "ORDER BY pd2.distancia_km ASC" : "ORDER BY pd2.precio ASC"}
+          ) as tiendas
       FROM productos p
       LEFT JOIN PreciosDetalle pd ON p.id = pd.productoId
       WHERE p.nombre LIKE ? OR p.codigoBarras = ?
       GROUP BY p.id
       LIMIT 20
     `;
-        const [products] = await db.execute(sql, [queryTerm, q, queryTerm, q]);
+
+        let queryParams = [queryTerm, q];
+        if (hasCoords) {
+            queryParams.push(userLat, userLng, userLat);
+        }
+        queryParams.push(queryTerm, q);
+
+        const [products] = await db.execute(sql, queryParams);
         res.json(products);
     } catch (error) {
+        console.error('Error in product search:', error.message);
         res.status(500).json({ error: error.message });
     }
 });
 
 app.get('/api/products/:identifier', async (req, res) => {
     const { identifier } = req.params;
+    const { lat, lng } = req.query;
 
     try {
         const [prodRows] = await db.execute('SELECT * FROM productos WHERE id = ? OR codigoBarras = ?', [identifier, identifier]);
@@ -217,14 +301,44 @@ app.get('/api/products/:identifier', async (req, res) => {
         }
 
         const product = prodRows[0];
-        const sqlPrices = `
-      SELECT pr.precio, r.fecha as fecha_lectura, r.establecimiento, r.fecha as fecha_recibo
-      FROM precios pr
-      JOIN recibos r ON pr.reciboId = r.id
-      WHERE pr.productoId = ?
-      ORDER BY r.fecha DESC
-    `;
-        const [prices] = await db.execute(sqlPrices, [product.id]);
+
+        // Enhance query if location is provided to include distance
+        let sqlPrices;
+        let queryParams = [product.id];
+
+        if (lat && lng) {
+            const userLat = parseFloat(lat);
+            const userLng = parseFloat(lng);
+            sqlPrices = `
+                SELECT 
+                    pr.precio, 
+                    r.fecha as fecha_lectura, 
+                    r.establecimiento, 
+                    r.fecha as fecha_recibo,
+                    e.latitud, e.longitud, e.direccion,
+                    (6371 * acos(
+                        cos(radians(?)) * cos(radians(e.latitud)) * 
+                        cos(radians(e.longitud) - radians(?)) + 
+                        sin(radians(?)) * sin(radians(e.latitud))
+                    )) AS distancia_km
+                FROM precios pr
+                JOIN recibos r ON pr.reciboId = r.id
+                LEFT JOIN establecimientos e ON r.establecimiento = e.nombre
+                WHERE pr.productoId = ?
+                ORDER BY distancia_km ASC, r.fecha DESC
+            `;
+            queryParams = [userLat, userLng, userLat, product.id];
+        } else {
+            sqlPrices = `
+                SELECT pr.precio, r.fecha as fecha_lectura, r.establecimiento, r.fecha as fecha_recibo
+                FROM precios pr
+                JOIN recibos r ON pr.reciboId = r.id
+                WHERE pr.productoId = ?
+                ORDER BY r.fecha DESC
+            `;
+        }
+
+        const [prices] = await db.execute(sqlPrices, queryParams);
 
         res.json({ product, prices });
     } catch (error) {

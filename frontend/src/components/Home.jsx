@@ -7,26 +7,44 @@ export default function Home() {
     const [results, setResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState('');
+    const [location, setLocation] = useState({ lat: null, lng: null });
 
     const navigate = useNavigate();
+
+    // Get location on mount
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                },
+                (err) => console.warn('Geolocation denied or failed:', err.message),
+                { enableHighAccuracy: false, timeout: 5000 }
+            );
+        }
+    }, []);
 
     // Auto-search if barcode is in URL
     useEffect(() => {
         const barcode = searchParams.get('barcode');
         if (barcode) {
             setQuery(barcode);
-            handleSearch(barcode);
+            handleSearch(barcode, location.lat, location.lng);
         }
-    }, [searchParams]);
+    }, [searchParams, location.lat]); // Re-search if location becomes available
 
-    const handleSearch = async (term) => {
+    const handleSearch = async (term, lat = location.lat, lng = location.lng) => {
         if (!term) return;
 
         setIsSearching(true);
         setError('');
 
         try {
-            const response = await fetch(`/api/products/search?q=${encodeURIComponent(term)}`);
+            let url = `/api/products/search?q=${encodeURIComponent(term)}`;
+            if (lat && lng) {
+                url += `&lat=${lat}&lng=${lng}`;
+            }
+            const response = await fetch(url);
             const data = await response.json();
 
             if (response.ok) {
@@ -145,7 +163,19 @@ export default function Home() {
                                                 borderRadius: '8px'
                                             }}>
                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontWeight: '600', fontSize: '0.95rem', color: '#1e293b' }}>{t.establecimiento}</span>
+                                                    <span style={{ fontWeight: '600', fontSize: '0.95rem', color: '#1e293b' }}>
+                                                        {t.establecimiento}
+                                                        {t.distancia_km !== undefined && (
+                                                            <span style={{
+                                                                marginLeft: '0.5rem',
+                                                                color: 'var(--accent-primary)',
+                                                                fontSize: '0.8rem',
+                                                                fontWeight: 'bold'
+                                                            }}>
+                                                                • {Number(t.distancia_km).toFixed(1)} km
+                                                            </span>
+                                                        )}
+                                                    </span>
                                                     <span style={{ fontSize: '0.75rem', color: isOutdated ? '#ef4444' : '#64748b' }}>
                                                         {isOutdated ? `⚠️ Desactualizado (Hace ${t.dias} días)` : (t.dias === 0 ? 'Actualizado Hoy' : `Hace ${t.dias} días`)}
                                                     </span>
