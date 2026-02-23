@@ -7,6 +7,9 @@
 - **Ingesta Automatizada 🤖**: Las facturas enviadas a un correo específico son procesadas y cargadas automáticamente en la base de datos a través de Google Apps Script.
 - **Geolocalización Inteligente 📍**: Extrae automáticamente las coordenadas de los supermercados usando Google Places API y te sugiere los precios más cercanos a ti.
 - **Comparativa de Precios 💰**: Busca productos por nombre o código de barras y visualiza el último precio registrado, ordenado por proximidad si tienes el GPS activo.
+- **Limpieza de Nombres con IA 🧠**: Utiliza un modelo de lenguaje (LLM) y heurísticas para limpiar automáticamente y estandarizar componentes oscuros en los nombres de las facturas.
+- **App Instalable (PWA) 📱**: Comparatico funciona como una App Móvil nativa si la instalas en iOS o Android, con caché offline e iconos de inicio.
+- **Dashboard Estadístico 📊**: Panel en tiempo real de facturas ingeridas, productos descubiertos, tiendas mapeadas y un total histórico de precios.
 - **Escáner Integrado 📸**: Usa la cámara de tu dispositivo móvil para escanear productos directamente en los pasillos del supermercado.
 - **Historial de Precios 📈**: Mantiene un registro cronológico de cada compra, preparando el terreno para análisis de inflación y evolución de precios.
 - **Seguridad y Rendimiento 🛡️**: Protegido contra abusos con Rate Limiting y optimizado con Caché Espacial. Despliegue seguro dockerizado con Nginx, MariaDB y Cloudflare Tunnels (Zero Trust).
