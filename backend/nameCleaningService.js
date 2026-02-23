@@ -10,6 +10,19 @@ class NameCleaningService {
         // Thresholds
         this.EXACT_MATCH_THRESHOLD = 92; // >= 92% is considered an exact match
         this.GRAY_AREA_THRESHOLD = 65;   // Between 65% and 91% goes to LLM
+
+        // Tail cleaning regex: Captures weight/unit clutter at the end of names
+        this.tailRegex = /\s+(\d+)?(\s+00)?\s*(g|kg|ml|l|unid|oz|lb)(\s+\d+)?$/i;
+    }
+
+    /**
+     * Removes trailing weight/unit clutter from a name for better visual display.
+     * @param {string} name 
+     * @returns {string}
+     */
+    sanitizeVisualName(name) {
+        if (!name) return '';
+        return name.replace(this.tailRegex, '').trim();
     }
 
     /**
@@ -79,7 +92,8 @@ Responde ÚNICAMENTE con la palabra "SI" o "NO". No agregues ninguna otra palabr
             return { action: 'NEW' };
         }
 
-        const normNew = this.normalize(newProductName);
+        const sanitizedNew = this.sanitizeVisualName(newProductName);
+        const normNew = this.normalize(sanitizedNew);
 
         // Prepare array of normalized catalog names for Fuzzball
         const choices = catalog.map(p => this.normalize(p.nombre));
