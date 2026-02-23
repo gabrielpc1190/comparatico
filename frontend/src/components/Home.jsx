@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, ScanBarcode } from 'lucide-react';
+import InstallPrompt from './InstallPrompt';
 export default function Home() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [query, setQuery] = useState(searchParams.get('barcode') || '');
@@ -72,6 +73,9 @@ export default function Home() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
+
+            <InstallPrompt />
+
             <div className="glass-panel" style={{ padding: '1.5rem' }}>
                 <h2 style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }}>Buscar Producto</h2>
                 <p>Ingresa el nombre o escanea un código de barras para encontrar los mejores precios.</p>

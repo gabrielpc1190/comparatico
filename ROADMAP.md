@@ -17,7 +17,7 @@ Este documento describe la hoja de ruta y las futuras expansiones planificadas p
 
 ### 1. Mejoras de UI/UX
 - [x] **Modo Oscuro Integrado**: Temas dinámicos según las preferencias del sistema del usuario (Actualmente vía CSS).
-- [ ] **PWA (Progressive Web App)**: Permitir la instalación de la web app en teléfonos móviles con un icono de inicio y modo offline básico.
+- [x] **PWA (Progressive Web App)**: Permitir la instalación de la web app en teléfonos móviles con un icono de inicio y modo offline básico.
 - [ ] **Filtros Avanzados**: Filtrar búsquedas por establecimiento o por rango de fechas (ej: "precios de los últimos 30 días").
 - [x] **Geolocalización y Cercanía**: Compartir ubicación del usuario para mostrar precios de productos en supermercados cercanos.
 
@@ -27,7 +27,7 @@ Este documento describe la hoja de ruta y las futuras expansiones planificadas p
 - [ ] **Cálculo de Inflación Personal**: Mostrar el porcentaje de aumento/disminución de productos recurrentes en la cesta del usuario.
 
 ### 3. Gestión y Calidad de Datos
-- [ ] **Limpieza Inteligente de Nombres**: Algoritmo para unificar nombres de productos que están escritos ligeramente diferentes en distintos supermercados (ej: "Arroz Tio Pelon 99" vs "ARROZ T PELON 99").
+- [x] **Limpieza Inteligente de Nombres**: Motor híbrido (Fuzzy + LLM) y sanitizador visual mediante Regex integrados.
 - [ ] **Agrupación Manual de Productos**: Panel de administración para fusionar dos registros o asignar un código de barras a un producto que no lo traía en la factura.
 
 ---
